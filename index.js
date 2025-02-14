@@ -1,13 +1,15 @@
 const express = require('express');
 const mysql = require('mysql2');
-const path = require('path'); // For handling file paths
+const path = require('path');
 const app = express();
 const port = 3000;
 
 // Load environment variables
 require('dotenv').config();
 
-// Middleware to parse JSON bodies
+// Middleware to parse URL-encoded data (for form submission)
+app.use(express.urlencoded({ extended: true }));
+// Middleware to parse JSON bodies (for API requests)
 app.use(express.json());
 
 // Set EJS as the view engine
@@ -18,10 +20,10 @@ app.set('views', path.join(__dirname, 'views'));
 
 // MySQL connection configuration using environment variables
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,      // Use DB_HOST from .env file
-    user: process.env.DB_USER,      // Use DB_USER from .env file
-    password: process.env.DB_PASSWORD,  // Use DB_PASSWORD from .env file
-    database: process.env.DB_NAME   // Use DB_NAME from .env file
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
 });
 
 // Connect to MySQL
@@ -33,7 +35,7 @@ db.connect((err) => {
     console.log('Connected to MySQL as id ' + db.threadId);
 });
 
-// Route to render the homepage with the tasks
+// Route to render the homepage with the tasks and handle task submission
 app.get('/', (req, res) => {
     // Query to fetch all tasks from the database
     db.query('SELECT * FROM tasks', (err, results) => {
@@ -41,7 +43,6 @@ app.get('/', (req, res) => {
             console.error('Failed to fetch tasks:', err);
             return res.status(500).json({ error: 'Failed to fetch tasks' });
         }
-
         // Render the index.ejs template and pass the tasks as data
         res.render('index', { tasks: results });
     });
@@ -60,11 +61,7 @@ app.post('/tasks', (req, res) => {
             console.error('Failed to insert task:', err);
             return res.status(500).json({ error: 'Failed to add task' });
         }
-        res.status(201).json({
-            id: result.insertId,
-            title: title,
-            description: description,
-        });
+        res.redirect('/'); // After adding the task, redirect to the home page to view the tasks
     });
 });
 
