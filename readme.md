@@ -47,7 +47,7 @@ This will start the server and connect it to the MySQL database.
 
 After the server is running, open your web browser and access the app at:
 
-```http
+```bash
 http://{public_ipv4_address}:{app_port_number}
 ```
 
