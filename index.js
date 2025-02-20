@@ -33,6 +33,23 @@ db.connect((err) => {
         return;
     }
     console.log('Connected to MySQL as id ' + db.threadId);
+
+    // Check if the 'tasks' table exists, if not create it
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL
+        );
+    `;
+
+    db.query(createTableQuery, (err, result) => {
+        if (err) {
+            console.error('Error creating table:', err);
+            return;
+        }
+        console.log('Table "tasks" is ready or created successfully');
+    });
 });
 
 // Route to render the homepage with the tasks and handle task submission
