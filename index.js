@@ -19,37 +19,46 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // MySQL connection configuration using environment variables
-const db = mysql.createConnection({
+const dbConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-});
+};
 
-// Connect to MySQL
-db.connect((err) => {
-    if (err) {
-        console.error('Error connecting to MySQL:', err.stack);
-        return;
-    }
-    console.log('Connected to MySQL as id ' + db.threadId);
+// Function to create a new MySQL connection
+const createDBConnection = () => mysql.createConnection(dbConfig);
 
-    // Check if the 'tasks' table exists, if not create it
-    const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS tasks (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(255) NOT NULL,
-            description TEXT NOT NULL
-        );
-    `;
-
-    db.query(createTableQuery, (err, result) => {
+// Function to check MySQL connection
+const checkDBConnection = (connection) => {
+    connection.connect((err) => {
         if (err) {
-            console.error('Error creating table:', err);
+            console.error('Error connecting to MySQL:', err.stack);
             return;
         }
-        console.log('Table "tasks" is ready or created successfully');
+        console.log('Connected to MySQL as id ' + connection.threadId);
     });
+};
+
+// Create and check DB connection
+const db = createDBConnection();
+checkDBConnection(db);
+
+// Check if the 'tasks' table exists, if not create it
+const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL
+    );
+`;
+
+db.query(createTableQuery, (err, result) => {
+    if (err) {
+        console.error('Error creating table:', err);
+        return;
+    }
+    console.log('Table "tasks" is ready or created successfully');
 });
 
 // Route to render the homepage with the tasks and handle task submission
